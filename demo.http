@@ -1,0 +1,175 @@
+### In-Memory REST Task Manager - Demo
+### Make sure server is running: mvn exec:java
+### Click the green ▶ button next to each request to run it
+
+@baseUrl = http://localhost:8080
+
+# ─────────────────────────────────────────────
+# 1. CREATE TASKS
+# ─────────────────────────────────────────────
+
+### Create Task 1 — HIGH priority bug
+
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Fix login bug",
+  "description": "NullPointerException when user is null on login endpoint",
+  "priority": "HIGH"
+}
+
+### Create Task 2 — MEDIUM priority
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Write unit tests",
+  "description": "Cover all service layer methods with Mockito",
+  "priority": "MEDIUM"
+}
+
+### Create Task 3 — LOW priority
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Update README",
+  "description": "Add curl examples and architecture diagram",
+  "priority": "LOW"
+}
+
+### Create Task 4 — CRITICAL priority with due date
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Deploy to production",
+  "description": "Release version 2.0 to production environment",
+  "priority": "CRITICAL",
+  "dueDate": "2026-08-15T18:00:00"
+}
+
+# ─────────────────────────────────────────────
+# 2. READ / LIST TASKS
+# ─────────────────────────────────────────────
+
+### Get ALL tasks
+GET {{baseUrl}}/tasks
+
+### Get task by ID
+GET {{baseUrl}}/tasks/1
+
+### Get task that does NOT exist → 404 Not Found
+GET {{baseUrl}}/tasks/999
+
+### Filter tasks by STATUS = TODO
+GET {{baseUrl}}/tasks?status=TODO
+
+### Filter tasks by PRIORITY = HIGH
+GET {{baseUrl}}/tasks?priority=HIGH
+
+### Filter tasks by STATUS and PRIORITY
+GET {{baseUrl}}/tasks?status=TODO&priority=HIGH
+
+### Filter tasks by PRIORITY = CRITICAL
+GET {{baseUrl}}/tasks?priority=CRITICAL
+
+# ─────────────────────────────────────────────
+# 3. UPDATE TASKS — valid transitions
+# ─────────────────────────────────────────────
+
+### Move Task 1: TODO → IN_PROGRESS  ✅
+PUT {{baseUrl}}/tasks/1
+Content-Type: application/json
+
+{
+  "status": "IN_PROGRESS"
+}
+
+### Move Task 1: IN_PROGRESS → DONE  ✅
+PUT {{baseUrl}}/tasks/1
+Content-Type: application/json
+
+{
+  "status": "DONE"
+}
+
+### Move Task 2: TODO → CANCELLED  ✅
+PUT {{baseUrl}}/tasks/2
+Content-Type: application/json
+
+{
+  "status": "CANCELLED"
+}
+
+### Update title and description only (partial update)  ✅
+PUT {{baseUrl}}/tasks/3
+Content-Type: application/json
+
+{
+  "title": "Update README with full API docs",
+  "description": "Add curl examples, architecture diagram, and demo section"
+}
+
+### Update priority only  ✅
+PUT {{baseUrl}}/tasks/4
+Content-Type: application/json
+
+{
+  "priority": "HIGH"
+}
+
+# ─────────────────────────────────────────────
+# 4. INVALID TRANSITIONS — business rule errors
+# ─────────────────────────────────────────────
+
+### ❌ TODO → DONE (skip IN_PROGRESS) → 409 Conflict
+PUT {{baseUrl}}/tasks/3
+Content-Type: application/json
+
+{
+  "status": "DONE"
+}
+
+### ❌ DONE → IN_PROGRESS (already finished) → 409 Conflict
+PUT {{baseUrl}}/tasks/1
+Content-Type: application/json
+
+{
+  "status": "IN_PROGRESS"
+}
+
+### ❌ CANCELLED → TODO (cannot reopen) → 409 Conflict
+PUT {{baseUrl}}/tasks/2
+Content-Type: application/json
+
+{
+  "status": "TODO"
+}
+
+# ─────────────────────────────────────────────
+# 5. DELETE TASKS
+# ─────────────────────────────────────────────
+
+### Delete Task 3
+DELETE {{baseUrl}}/tasks/4
+
+### Try to get deleted task → 404 Not Found
+GET {{baseUrl}}/tasks/3
+
+### Delete non-existent task → 404 Not Found
+DELETE {{baseUrl}}/tasks/999
+
+# ─────────────────────────────────────────────
+# 6. FINAL STATE — see what's left
+# ─────────────────────────────────────────────
+
+### Get all remaining tasks
+GET {{baseUrl}}/tasks
+
+### Filter DONE tasks
+GET {{baseUrl}}/tasks?status=DONE
+
+### Filter CANCELLED tasks
+GET {{baseUrl}}/tasks?status=CANCELLED
