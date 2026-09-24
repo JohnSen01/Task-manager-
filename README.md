@@ -20,7 +20,7 @@ mvn spring-boot:run
 
 Or:
 
-```bash
+```bash----
 mvn clean package
 java -jar target/task-manager-showcase-1.0-SNAPSHOT.jar
 ```
